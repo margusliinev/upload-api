@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { DatabaseSync } from 'node:sqlite';
 import { saveUpload } from './save-upload.ts';
-import { createHash } from 'crypto';
+import { processFileStream } from './process-file-stream.ts';
 import multipart from '@fastify/multipart';
 import fastify from 'fastify';
 
@@ -22,22 +22,15 @@ export async function buildApp(db: DatabaseSync): Promise<FastifyInstance> {
             const data = await request.file();
 
             if (!data?.file) {
+                request.log.warn('No file uploaded');
                 return reply.status(400).send({
                     success: false,
                     message: 'No file uploaded',
                 });
             }
 
-            const hash = createHash('sha1');
-            let totalSize = 0;
-
-            for await (const chunk of data.file) {
-                hash.update(chunk);
-                totalSize += chunk.length;
-            }
-
-            const sha1Hash = hash.digest('hex');
-            const upload = saveUpload({ request, sql, size: totalSize, hash: sha1Hash });
+            const { hash, size } = await processFileStream(request, data.file);
+            const upload = saveUpload({ request, sql, size, hash });
 
             return reply.status(200).send({
                 success: true,
@@ -46,7 +39,7 @@ export async function buildApp(db: DatabaseSync): Promise<FastifyInstance> {
         } catch (error) {
             request.log.error(error);
 
-            const errorMessage = error instanceof Error ? error.message : 'Upload processing failed';
+            const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';
             return reply.status(500).send({
                 success: false,
                 message: errorMessage,
