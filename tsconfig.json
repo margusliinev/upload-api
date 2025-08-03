@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "rewriteRelativeImportExtensions": true,
+        "allowImportingTsExtensions": true,
+        "noUncheckedIndexedAccess": true,
+        "noUnusedParameters": true,
+        "noUnusedLocals": true,
+        "erasableSyntaxOnly": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "module": "NodeNext",
+        "target": "ESNext",
+        "outDir": "./build",
+        "rootDir": "./src",
+        "types": ["node"]
+    },
+    "include": ["src/**/*"],
+    "exclude": ["node_modules", "build", "test"]
+}
